@@ -3,39 +3,71 @@
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="utf-8" />
-    <title>My first three.js app</title>
+    <title>SkyBox</title>
     <style>
         body {
             margin: 0;
+            overflow: hidden;
         }
     </style>
 </head>
 <body>
-    <script src="https://threejs.org/build/three.js"></script>
-    <script type="text/javascript">
-        const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    <canvas id="canv"></canvas>
+    <script src="https://threejs.org/build/three.min.js"></script>
+    <script src="https://threejs.org/examples/js/controls/OrbitControls.js"></script>
+    <script type="module">
+        let scene, camera, renderer;
+        function init() {
+            let canvas = document.getElementById('canv');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
 
-        const renderer = new THREE.WebGLRenderer();
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        document.body.appendChild(renderer.domElement);
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 45, 30000);
+            camera.position.set(-900, -200, -900);
 
-        const geometry = new THREE.BoxGeometry(1, 2, 1);
-        const material = new THREE.MeshBasicMaterial({ color: 0x006500 });
-        const cube = new THREE.Mesh(geometry, material);
-        scene.add(cube);
+            renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
 
-        camera.position.z = 10;
+            //controls
+            let controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.addEventListener('change', renderer);
+            controls.minDistance = 200;
+            controls.maxDistance = 1500;
+            controls.zoomSpeed = 20;
+
+            //mesh
+            let materialArray = [];
+            let t_ft = new THREE.TextureLoader().load("afterrain_ft.jpg");
+            let t_bk = new THREE.TextureLoader().load("afterrain_bk.jpg");
+            let t_up = new THREE.TextureLoader().load("afterrain_up.jpg");
+            let t_dn = new THREE.TextureLoader().load("afterrain_dn.jpg");
+            let t_rf = new THREE.TextureLoader().load("afterrain_rt.jpg");
+            let t_lf = new THREE.TextureLoader().load("afterrain_lf.jpg");
+
+            materialArray.push(new THREE.MeshBasicMaterial({ map: t_ft }));
+            materialArray.push(new THREE.MeshBasicMaterial({ map: t_bk }));
+            materialArray.push(new THREE.MeshBasicMaterial({ map: t_up }));
+            materialArray.push(new THREE.MeshBasicMaterial({ map: t_dn }));
+            materialArray.push(new THREE.MeshBasicMaterial({ map: t_rf }));
+            materialArray.push(new THREE.MeshBasicMaterial({ map: t_lf }));
+
+            for (let i = 0; i < 6; i++)
+                materialArray[i].side = THREE.BackSide;
+
+            let skyboxGeo = new THREE.BoxGeometry(10000, 10000, 10000);
+            let skybox = new THREE.Mesh(skyboxGeo, materialArray);
+            scene.add(skybox);
+        }
+        //const material = new THREE.MeshBasicMaterial({ color: 0x006500 });
 
         function animate() {
-            requestAnimationFrame(animate);
-
-            cube.rotation.x += 0.10;
-            cube.rotation.y += 0.01;
-
             renderer.render(scene, camera);
+            requestAnimationFrame(animate);
+            
         };
-
+        init();
         animate();
     </script>
 </body>
